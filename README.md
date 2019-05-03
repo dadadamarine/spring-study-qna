@@ -1,3 +1,5 @@
+# 해당 Repository의 원격저장소는 [새싹스터디-qna-minseok브런치](https://github.com/sproutt/spring-study-qna/tree/econo-minsuck)에 있습니다.
+
 # 질문답변 게시판
 ## 진행 방법
 * 질문답변 게시판에 대한 html template은 src/main/resources 디렉토리의 static에서 확인할 수 있다. html template을 통해 요구사팡을 파악한다.
