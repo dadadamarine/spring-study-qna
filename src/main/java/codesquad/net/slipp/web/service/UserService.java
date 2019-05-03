@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class UserService {
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     public boolean checkIdPassword(User user) {
         String userId = user.getUserId();
@@ -19,6 +19,14 @@ public class UserService {
         );
 
         return modelUser.match(user.getPassword());
+    }
+
+    public boolean checkIdPassword(String userId, String password) {
+        User modelUser = userRepository.findByUserId(userId).orElseThrow(
+                () -> new UserNotFoundException(userId)
+        );
+
+        return modelUser.match(password);
     }
 
     public User findByUserId(String userId) {
@@ -38,7 +46,6 @@ public class UserService {
     }
 
     public User save(User user) {
-
         return userRepository.save(user);
     }
 
@@ -49,7 +56,6 @@ public class UserService {
     }
 
     public Iterable<User> findAll() {
-
         return userRepository.findAll();
     }
 }

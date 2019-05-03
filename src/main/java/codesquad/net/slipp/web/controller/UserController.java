@@ -1,7 +1,6 @@
 package codesquad.net.slipp.web.controller;
 
 import codesquad.net.slipp.web.domain.User;
-import codesquad.net.slipp.web.domain.UserRepository;
 import codesquad.net.slipp.web.service.UserService;
 import codesquad.net.slipp.web.utils.SessionUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,40 +15,32 @@ import javax.servlet.http.HttpSession;
 public class UserController {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     private UserService userService;
 
     @GetMapping("")
     public String userList(Model model) {
-        Iterable<User> users = userService.findAll();
         model.addAttribute("users", userService.findAll());
-
         return "/user/list";
     }
 
     @PostMapping("")
     public String create(User user) {
         userService.save(user);
-
         return "redirect:/users";
     }
 
     @GetMapping("/login")
     public String loginForm() {
-
         return "/user/login";
     }
 
     @PostMapping("/login")
-    public String login(User user, HttpSession session) {
-        if (userService.checkIdPassword(user)) {
-            session.setAttribute("userSession", user);
+    public String login(String userId, String password, HttpSession session) {
+        if (userService.checkIdPassword(userId, password)) {
+            session.setAttribute("userSession", userService.findByUserId(userId));
 
             return "redirect:/";
         }
-
         return "/user/login_failed";
     }
 
@@ -62,33 +53,32 @@ public class UserController {
 
     @GetMapping("/{id}")
     public String userProfile(@PathVariable long id, Model model) {
-        model.addAttribute("user", userRepository.findById(id));
+        model.addAttribute("user", userService.findById(id));
 
         return "/user/list_profile";
     }
 
     @GetMapping("/{id}/form")
     public String userUpdateForm(@PathVariable long id, Model model, HttpSession session) {
-        SessionUtil.isSessionMatch(session, userService.findById(id));
-        model.addAttribute("user", userService.findById(id));
+        model.addAttribute("user", SessionUtil.getAuthUser(session, userService.findById(id)));
 
         return "/user/updateForm";
     }
 
-    @GetMapping("/updateForm")
     public String updateForm(HttpSession session) {
-
-        return "redirect:/users/" + SessionUtil.getSessionUser(session).getId() + "/form";
+        return new StringBuffer("redirect:/users/")
+                .append(SessionUtil.getSessionUserId(session))
+                .append("/form")
+                .toString();
     }
 
     @PutMapping("/{id}")
     public String update(@PathVariable long id, HttpSession session, User updatedUser, String modifiedPassword) {
-        SessionUtil.isSessionMatch(session, userService.findById(id));
         if (!userService.checkIdPassword(updatedUser)) {
-
             return "/user/error";
         }
-        userService.update(userService.findById(id), updatedUser, modifiedPassword);
+        userService.update(SessionUtil.getAuthUser(session, userService.findById(id)),
+                updatedUser, modifiedPassword);
 
         return "redirect:/users";
     }
